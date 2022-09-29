@@ -9,16 +9,11 @@ function BookCard(props) {
                 <h5 className="card-title">{props.book.title}</h5>
                 <p className="card-text">{props.book.description}</p>
                 <p className="card-text"><small className="text-muted">Status:{props.book.status}</small></p>
-                <div className="btn-group" role="group" aria-label="Basic radio toggle button group">
-                    <input type="radio" className="btn-check" name="btnradio" checked={props.book.status === 'todo'}/>
-                    <label className="btn btn-outline-primary" for="btnradio1">To Read</label>
-
-                    <input type="radio" className="btn-check" name="btnradio" checked={props.book.status === 'inprogress'}/>
-                    <label className="btn btn-outline-primary" for="btnradio2">Reading</label>
-
-                    <input type="radio" className="btn-check" name="btnradio" checked={props.book.status === 'done'}/>
-                    <label className="btn btn-outline-primary" for="btnradio3">Done</label>
-                </div>
+                <select className="form-select" aria-label="Default select example" value={props.book.status}>
+                    <option value="todo">To Do</option>
+                    <option value="inprogress">In progress</option>
+                    <option value="done">Done</option>
+                </select>
             </div>
         </div>
     )

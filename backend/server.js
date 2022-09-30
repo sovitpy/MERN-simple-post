@@ -3,11 +3,63 @@
  * import express */
 const express = require('express');
 const cors = require('cors');
-const app = express();
 // middleware
+const app = express();
 app.use(express.json());
 app.use(cors())
 
+// `npm install mongoose`
+const mongoose = require("mongoose");
+const options = {
+    keepAlive: true,
+    connectTimeoutMS: 10000,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+};
+// mongodb+srv://<username>:<password>@cluster0.6vk0qgz.mongodb.net/?retryWrites=true&w=majority
+// You guys need to replace with your own server url and correct <username> and <password>
+const dbUrl = `mongodb://localhost:27017`;
+
+// Mongo DB connection
+mongoose.connect(dbUrl, options, (err) => {
+    if (err) console.log(err);
+});
+
+// Validate DB connection
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error: "));
+db.once("open", function () {
+    console.log("Mongo DB Connected successfully");
+});
+
+// Schema for Book
+let Schema = mongoose.Schema;
+let bookSchema = new Schema(
+    {
+        id: {
+            type: Number,
+        },
+        title: {
+            type: String,
+        },
+        description: {
+            type: String,
+        },
+        author: {
+            type: String,
+        },
+        img: {
+            type: String,
+        },
+        status: {
+            type: String,
+        }
+    },
+    { timestamps: true }
+);
+let BookModel = mongoose.model("book", bookSchema);
+
+// Mock Data : We will stop using this static data and will add and remove data from DB itself
 let myMockDB = [
     {
         id: 1,
@@ -42,14 +94,26 @@ app.get('/', (req, res) => {
 
 
 /** GET API: GETs Books from DB and returns as response */
-app.get('/books', (req, res) => {
-    res.json(myMockDB);
+app.get('/books', async (req, res) => {
+    try {
+        let posts = await BookModel.find();
+        res.status(200).json({
+            status: 200,
+            data: posts,
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 400,
+            message: err.message,
+        });
+    }
 });
 
 /** POST API: Gets new book info from React and adds it to DB */
 
-app.post('/books', (req, res) => {
+app.post('/books', async (req, res) => {
     const inputBook = req.body;
+    console.log(inputBook);
     const matchingBooks = myMockDB.filter(book => book.id === inputBook.id).length;
     if (matchingBooks) {
         res.status(500);
@@ -57,7 +121,39 @@ app.post('/books', (req, res) => {
     } else {
         myMockDB.push(req.body);
     }
-    res.json(myMockDB);
+    try {
+        console.log('input Book:', inputBook);
+        let post = new BookModel(inputBook);
+        post = await post.save();
+        res.status(200).json({
+            status: 200,
+            data: post,
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 400,
+            message: err.message,
+        });
+    }
+});
+
+
+app.get('/loadSampleBooks', async (req, res) => {
+    try {
+        myMockDB.forEach(async (bookIn) => {
+            let post = new BookModel(bookIn);
+            post = await post.save();
+        });
+        res.status(200).json({
+            status: 200,
+            data: myMockDB,
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 400,
+            message: err.message,
+        });
+    }
 });
 
 /** DELETE API: Gets ID of the book to be deleted from React and deletes the book in db. 

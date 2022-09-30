@@ -10,7 +10,7 @@ function App() {
       .then(res => res.json())
       .then(data => {
         console.log('data books:', data);
-        setBooks(data);
+        setBooks(data.data);
       });
   }
 

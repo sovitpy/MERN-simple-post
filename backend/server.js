@@ -8,6 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(cors())
 
+
 // `npm install mongoose`
 const mongoose = require("mongoose");
 const options = {
@@ -59,6 +60,7 @@ let bookSchema = new Schema(
 );
 let BookModel = mongoose.model("book", bookSchema);
 
+
 // Mock Data : We will stop using this static data and will add and remove data from DB itself
 let myMockDB = [
     {
@@ -109,8 +111,8 @@ app.get('/books', async (req, res) => {
     }
 });
 
-/** POST API: Gets new book info from React and adds it to DB */
 
+/** POST API: Gets new book info from React and adds it to DB */
 app.post('/books', async (req, res) => {
     const inputBook = req.body;
     console.log(inputBook);
@@ -138,6 +140,65 @@ app.post('/books', async (req, res) => {
 });
 
 
+app.put("/books/:bookId", async (req, res) => {
+    try {
+        console.log('PUT request..:' + req.params.bookId);
+        let newBook = req.body;
+        console.log(JSON.stringify('Req body:', JSON.stringify(newBook)));
+        /** There is BUG, Data is not getting updated in DB for me */
+        let book = await BookModel.findByIdAndUpdate({ _id: req.params.bookId }, req.body, {
+            new: true,
+        }).catch((err) => {
+            console.error('Error-----------------', err);
+        });
+        console.log(11111111111111111111111111111111);
+        if (book) {
+            console.log(JSON.stringify(book));
+            res.status(200).json({
+                status: 200,
+                data: book,
+            });
+        }
+        res.status(400).json({
+            status: 400,
+            message: "No Book found",
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 400,
+            message: err.message,
+        });
+    }
+});
+
+
+/** DELETE API: Gets ID of the book to be deleted from React and deletes the book in db. 
+ * Sends 400 if there is no book with given id
+ * Sends 500 if there is an error while saving data to DB
+ * Sends 200 if deleted successfully
+ */
+app.delete("/books/:bookId", async (req, res) => {
+    try {
+        let book = await BookModel.findByIdAndRemove(req.params.bookId);
+        if (book) {
+            res.status(200).json({
+                status: 200,
+                message: "Book deleted successfully",
+            });
+        } else {
+            res.status(400).json({
+                status: 400,
+                message: "No Book found",
+            });
+        }
+    } catch (err) {
+        res.status(400).json({
+            status: 400,
+            message: err.message,
+        });
+    }
+});
+
 app.get('/loadSampleBooks', async (req, res) => {
     try {
         myMockDB.forEach(async (bookIn) => {
@@ -155,11 +216,5 @@ app.get('/loadSampleBooks', async (req, res) => {
         });
     }
 });
-
-/** DELETE API: Gets ID of the book to be deleted from React and deletes the book in db. 
- * Sends 400 if there is no book with given id
- * Sends 500 if there is an error while saving data to DB
- * Sends 200 if deleted successfully
- */
 
 app.listen(3001);

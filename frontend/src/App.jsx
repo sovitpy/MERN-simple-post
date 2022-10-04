@@ -4,15 +4,16 @@ import AddBook from './components/AddBook';
 import Books from './components/Books';
 
 function App() {
-  const [books, setBooks] = useState([]);
   const getBooksFromNode = () => {
+    console.log('updating books....');
     fetch('http://localhost:3001/books')
       .then(res => res.json())
       .then(data => {
         console.log('data books:', data);
         setBooks(data.data);
       });
-  }
+  };
+  const [books, setBooks] = useState([]);
 
   // Component Init
   useEffect(() => {
@@ -30,7 +31,7 @@ function App() {
             </button>
           </div>
         </div>
-        <Books books={books}></Books>
+        <Books books={books} updateBooks={getBooksFromNode}></Books>
         <AddBook></AddBook>
       </div>
     </div>
